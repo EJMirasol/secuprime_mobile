@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "804247720576",
+    "project_id": "secuprime-7c43c",
+    "storage_bucket": "secuprime-7c43c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:804247720576:android:379d2309cda9213b3f8c65",
+        "android_client_info": {
+          "package_name": "com.secuprime_mobile.secuprime_mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "804247720576-53bsg11dkh7mrudi5jlp6mtvi7mlu03v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdTQGpiSzUsZKUgLKH2cLHG82ThETeX1E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "804247720576-53bsg11dkh7mrudi5jlp6mtvi7mlu03v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
