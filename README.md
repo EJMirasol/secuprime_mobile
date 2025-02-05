@@ -54,4 +54,5 @@ Open Source
 
 Contact
 
-For support, questions, or feedback, please reach out to me through email: brotherellyjohnmirasol@gmail.com
+For support, questions, or feedback, please reach out to me through email: ellyjohnmirasol@yahoo.com
+
