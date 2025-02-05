@@ -263,7 +263,7 @@ class _PasswordStoragePageState extends State<PasswordStoragePage> {
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  'Metrics: ${password['metrics']}',
+                                  'Length: ${password['password'].length} | Metrics: ${password['metrics']}',
                                   style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 12,
