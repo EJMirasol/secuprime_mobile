@@ -95,6 +95,7 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
   final _passwordGeneratorKey = GlobalKey<PasswordGeneratorScreenState>();
+  bool _isNavRailVisible = false;
 
   late final List<Widget> _pages;
 
@@ -109,7 +110,6 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   Future<void> _onItemTapped(int index) async {
-    // Check if we're leaving the password generator screen (index 0)
     if (_selectedIndex == 0 && index != 0) {
       final passwordState = _passwordGeneratorKey.currentState;
       if (passwordState != null &&
@@ -163,28 +163,63 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.key),
-            label: 'Generate',
+      body: Row(
+        children: [
+          AnimatedContainer(
+            duration: Duration(milliseconds: 300),
+            width: _isNavRailVisible ? 72 : 0,
+            child: NavigationRail(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: _onItemTapped,
+              labelType: NavigationRailLabelType.selected,
+              backgroundColor: Color(0xFF191647),
+              selectedIconTheme: IconThemeData(color: Colors.white),
+              selectedLabelTextStyle: TextStyle(color: Colors.white),
+              unselectedIconTheme: IconThemeData(color: Colors.white60),
+              unselectedLabelTextStyle: TextStyle(color: Colors.white60),
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.key),
+                  label: Text('Generate'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.lock),
+                  label: Text('Passwords'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.chat),
+                  label: Text('Chat'),
+                ),
+              ],
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.lock),
-            label: 'Passwords',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
+          Expanded(
+            child: Stack(
+              children: [
+                _pages[_selectedIndex],
+                Positioned(
+                  left: 12,
+                  top: 12,
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 300),
+                    child: IconButton(
+                      key: ValueKey(_isNavRailVisible),
+                      icon: Icon(
+                        _isNavRailVisible ? Icons.close : Icons.menu,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isNavRailVisible = !_isNavRailVisible;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
-        currentIndex: _selectedIndex,
-        backgroundColor: Color(0xFF191647),
-        selectedItemColor: const Color.fromARGB(255, 255, 255, 255),
-        unselectedItemColor: Colors.white60,
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTapped,
       ),
     );
   }

@@ -32,7 +32,7 @@ class PasswordGenerator {
   PasswordGenerationResult generateSecurePassword(
       int length, String complexity) {
     final primeNumbers = <int>[];
-    int number = 1000000; // Start from 1 million
+    int number = 7; // Start from 1 million
 
     // Generate a list of prime numbers
     while (primeNumbers.length < length) {
