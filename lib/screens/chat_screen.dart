@@ -3,6 +3,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:secuprime_mobile/config/api_config.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -19,6 +20,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = false;
   late final GenerativeModel _model;
   late final ChatSession _chat;
+  final TextEditingController _searchController = TextEditingController();
+  List<ChatMessage> _filteredMessages = [];
 
   @override
   void initState() {
@@ -32,8 +35,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _initializeGemini() {
-    _model =
-        GenerativeModel(model: 'gemini-pro', apiKey: ApiConfig.geminiApiKey);
+    _model = GenerativeModel(
+        model: 'gemini-2.0-flash', apiKey: ApiConfig.geminiApiKey);
     _chat = _model.startChat(history: [
       Content.text(
         'You are SecuPrime, an AI password security expert assistant. Your role is to:'
@@ -176,6 +179,95 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void _showSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF242761),
+              title: const Text(
+                'Search Chat History',
+                style: TextStyle(color: Colors.white),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _searchController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Search messages...',
+                        hintStyle: const TextStyle(color: Colors.white70),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFF2E3270),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _filteredMessages = _messages
+                              .where((message) => message.text
+                                  .toLowerCase()
+                                  .contains(value.toLowerCase()))
+                              .toList();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _filteredMessages.length,
+                        itemBuilder: (context, index) {
+                          final message = _filteredMessages[index];
+                          return ListTile(
+                            title: Text(
+                              message.text,
+                              style: const TextStyle(color: Colors.white),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            onTap: () {
+                              _textController.text = message.text;
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    if (_filteredMessages.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          'No matching messages found',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      )
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(color: Color(0xFF8E8EF3)),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -203,6 +295,10 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white70),
+            onPressed: _showSearchDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.white70),
             onPressed: () {
@@ -323,9 +419,13 @@ class _ChatScreenState extends State<ChatScreen> {
                     shape: const CircleBorder(),
                     padding: const EdgeInsets.all(16),
                     elevation: 2,
-                    child: const Icon(
-                      Icons.send,
-                      color: Colors.white,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        _isLoading ? Icons.hourglass_top : Icons.send,
+                        color: Colors.white,
+                        key: ValueKey<bool>(_isLoading),
+                      ),
                     ),
                   ),
                 ],
@@ -341,6 +441,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 }
@@ -359,85 +460,119 @@ class ChatMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment:
-            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isUser) ...[
-            Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                color: Color(0xFF8E8EF3),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.security,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              decoration: BoxDecoration(
-                color:
-                    isUser ? const Color(0xFF8E8EF3) : const Color(0xFF242761),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Text(
-                text,
-                style: const TextStyle(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: Row(
+          mainAxisAlignment:
+              isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!isUser) ...[
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF8E8EF3),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  'assets/logo.png',
+                  width: 5,
+                  height: 5,
                   color: Colors.white,
-                  fontSize: 16,
+                  colorBlendMode: BlendMode.dstIn,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Flexible(
+              child: AnimatedScale(
+                scale: 1,
+                duration: const Duration(milliseconds: 150),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isUser
+                        ? const Color(0xFF8E8EF3)
+                        : const Color(0xFF242761),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      SelectableText(
+                        text,
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      Positioned(
+                        bottom: 4,
+                        right: 4,
+                        child: IconButton(
+                          icon: const Icon(Icons.content_copy,
+                              size: 18, color: Colors.white70),
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: text));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Copied to clipboard'),
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                          padding: const EdgeInsets.all(4),
+                          tooltip: 'Copy message',
+                          splashRadius: 16,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          if (isUser) ...[
-            const SizedBox(width: 8),
-            Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                color: Color(0xFF242761),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+            if (isUser) ...[
+              const SizedBox(width: 8),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF242761),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.person,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
-              child: const Icon(
-                Icons.person,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

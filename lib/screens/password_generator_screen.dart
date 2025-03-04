@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import '../widgets/password_metrics_display.dart';
 import '../utils/password_generator.dart';
 import '../services/password_storage_service.dart';
+import 'dart:math';
+import 'dart:async';
 
 class PasswordGeneratorScreen extends StatefulWidget {
   const PasswordGeneratorScreen({super.key});
@@ -188,241 +190,369 @@ class PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          // Background Image
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(
+                    'assets/background_image.jpg'), // Update with your image path
+                fit: BoxFit.cover, // Cover the entire screen
+              ),
+            ),
+          ),
+          // Foreground content
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          const TextSpan(
-                            text: 'Password',
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF001f3f),
-                            ),
+                    Center(
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0, vertical: 16.0),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF191647),
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(20.0),
+                            bottomRight: Radius.circular(20.0),
+                            topLeft: Radius.circular(2.0),
+                            topRight: Radius.circular(2.0),
                           ),
-                          const TextSpan(
-                            text: '\nGeneration',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF001f3f),
-                            ),
+                        ),
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: const TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'Password',
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                ),
+                              ),
+                              TextSpan(
+                                text: '\nGeneration',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(135, 255, 255, 255),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 100),
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(25),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Center(
-                          child: Text(
-                            'Choose Password Length:',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF001f3f),
+                    const SizedBox(height: 100),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
                             ),
-                          ),
+                          ],
                         ),
-                        Slider(
-                          value: _passwordLength.toDouble(),
-                          min: 8,
-                          max: 24,
-                          activeColor: Color(0xFF191647),
-                          inactiveColor:
-                              const Color.fromARGB(255, 193, 193, 193),
-                          divisions: 16,
-                          label: '$_passwordLength',
-                          onChanged: (value) {
-                            setState(() {
-                              _passwordLength = value.toInt();
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        const Center(
-                          child: Text(
-                            'Select Complexity',
-                            style: TextStyle(
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF191647),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Center(
-                          child: Container(
-                            width: 150,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF191647),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: DropdownButton<String>(
-                              value: _complexity,
-                              isExpanded: true,
-                              dropdownColor: const Color(0xFF191647),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Center(
+                              child: Text(
+                                'Choose Password Length:',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF001f3f),
+                                ),
                               ),
-                              icon: const Icon(Icons.arrow_drop_down,
-                                  color: Colors.white),
-                              underline: Container(),
-                              items: ['Low', 'Medium', 'High']
-                                  .map((e) => DropdownMenuItem(
-                                        value: e,
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                          ),
-                                          child: Center(
-                                            child: Text(e),
-                                          ),
-                                        ),
-                                      ))
-                                  .toList(),
+                            ),
+                            Slider(
+                              value: _passwordLength.toDouble(),
+                              min: 8,
+                              max: 24,
+                              activeColor: Color(0xFF191647),
+                              inactiveColor:
+                                  const Color.fromARGB(255, 193, 193, 193),
+                              divisions: 16,
+                              label: '$_passwordLength',
                               onChanged: (value) {
                                 setState(() {
-                                  _complexity = value!;
+                                  _passwordLength = value.toInt();
                                 });
                               },
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Center(
-                          child: const Text(
-                            'Generated Password:',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 142, 146, 152),
+                            const SizedBox(height: 20),
+                            const Center(
+                              child: Text(
+                                'Select Complexity',
+                                style: TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF191647),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Center(
-                                  child: _isLoading
-                                      ? Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 45.0),
-                                          child:
-                                              const CircularProgressIndicator(),
-                                        )
-                                      : Text(
-                                          _generatedPassword,
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF191647),
-                                          ),
+                            const SizedBox(height: 10),
+                            Center(
+                              child: Container(
+                                width: 150,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF191647),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: DropdownButton<String>(
+                                  value: _complexity,
+                                  isExpanded: true,
+                                  dropdownColor: const Color(0xFF191647),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  icon: const Icon(Icons.arrow_drop_down,
+                                      color: Colors.white),
+                                  underline: Container(),
+                                  items: ['Low', 'Medium', 'High']
+                                      .map((e) => DropdownMenuItem(
+                                            value: e,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
+                                              ),
+                                              child: Center(
+                                                child: Text(e),
+                                              ),
+                                            ),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _complexity = value!;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Center(
+                              child: const Text(
+                                'Generated Password:',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 142, 146, 152),
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Center(
+                                      child: _isLoading
+                                          ? Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 45.0),
+                                              child: ShuffleLoader(
+                                                passwordLength: _passwordLength,
+                                                duration:
+                                                    const Duration(seconds: 2),
+                                              ),
+                                            )
+                                          : Text(
+                                              _generatedPassword,
+                                              style: const TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF191647),
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.copy),
+                                    onPressed: _copyToClipboard,
+                                    color: const Color.fromARGB(
+                                        255, 131, 132, 133),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Center(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: _generatePassword,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            const Color(0xFF191647),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 5),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
                                         ),
-                                ),
+                                      ),
+                                      child: const Text(
+                                        'Generate Password',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: _savePassword,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            const Color(0xFF191647),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 5),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Save Password',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.copy),
-                                onPressed: _copyToClipboard,
-                                color: const Color.fromARGB(255, 131, 132, 133),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: _generatePassword,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF191647),
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 5),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Generate Password',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: _savePassword,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF191647),
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 5),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Save Password',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 20),
+                    Center(
+                      child:
+                          PasswordMetricsDisplay(metrics: _performanceMetrics),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-                Center(
-                  child: PasswordMetricsDisplay(metrics: _performanceMetrics),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
+    );
+  }
+}
+
+class ShuffleLoader extends StatefulWidget {
+  final int passwordLength;
+  final Duration duration;
+  final VoidCallback? onComplete;
+
+  const ShuffleLoader({
+    super.key,
+    required this.passwordLength,
+    required this.duration,
+    this.onComplete,
+  });
+
+  @override
+  State<ShuffleLoader> createState() => _ShuffleLoaderState();
+}
+
+class _ShuffleLoaderState extends State<ShuffleLoader>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late String _displayText;
+  final _chars =
+      '!@#\$%^&*()_+-=[]{}|;:,.<>?~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  Timer? _shuffleTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat();
+
+    _displayText = _generateShuffleText();
+    _startShuffleEffect();
+  }
+
+  String _generateShuffleText() {
+    final rand = Random();
+    return List.generate(widget.passwordLength,
+        (index) => _chars[rand.nextInt(_chars.length)]).join();
+  }
+
+  void _startShuffleEffect() {
+    _shuffleTimer = Timer.periodic(const Duration(milliseconds: 80), (timer) {
+      if (mounted) {
+        setState(() => _displayText = _generateShuffleText());
+      }
+    });
+
+    Future.delayed(widget.duration, () {
+      _shuffleTimer?.cancel();
+      widget.onComplete?.call();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _shuffleTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            colors: [Colors.blue.shade400, Colors.purple.shade400],
+            stops: const [0.3, 0.7],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            transform: GradientRotation(_controller.value * 2 * pi),
+          ).createShader(bounds),
+          child: Text(
+            _displayText,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Monospace',
+              letterSpacing: 2,
+            ),
+          ),
+        );
+      },
     );
   }
 }

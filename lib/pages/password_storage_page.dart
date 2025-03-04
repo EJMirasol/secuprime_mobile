@@ -219,7 +219,8 @@ class _PasswordStoragePageState extends State<PasswordStoragePage> {
                       final password = _passwords[index];
                       return Dismissible(
                         key: Key(password['id'].toString()),
-                        background: Container(
+                        background: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
                           color: Color(0xFFB00020),
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: 20),
@@ -235,90 +236,106 @@ class _PasswordStoragePageState extends State<PasswordStoragePage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           elevation: 2,
-                          child: ListTile(
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            title: Text(
-                              password['label'],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                fontSize: 16,
+                          child: InkWell(
+                            onTap: () {},
+                            splashColor: Colors.white.withOpacity(0.1),
+                            highlightColor: Colors.transparent,
+                            child: ListTile(
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              title: Text(
+                                password['label'],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
                               ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: 6),
-                                Text(
-                                  _passwordVisibility[password['id']] == true
-                                      ? password['password']
-                                      : '•' * password['password'].length,
-                                  style: const TextStyle(
-                                    fontFamily: 'monospace',
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  'Length: ${password['password'].length} | Metrics: ${password['metrics']}',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 6),
+                                  Text(
                                     _passwordVisibility[password['id']] == true
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                    color: Colors.white70,
-                                    size: 24,
+                                        ? password['password']
+                                        : '•' * password['password'].length,
+                                    style: const TextStyle(
+                                      fontFamily: 'monospace',
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      letterSpacing: 1.2,
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _passwordVisibility[password['id']] =
-                                          !(_passwordVisibility[
-                                                  password['id']] ??
-                                              false);
-                                    });
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.copy,
-                                    color: Colors.white70,
-                                    size: 24,
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Length: ${password['password'].length} | Metrics: ${password['metrics']}',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.italic,
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    Clipboard.setData(
-                                      ClipboardData(text: password['password']),
-                                    );
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Password copied!'),
-                                        backgroundColor: Color(0xFF191647),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedScale(
+                                    scale:
+                                        _passwordVisibility[password['id']] ??
+                                                false
+                                            ? 1.1
+                                            : 1.0,
+                                    duration: const Duration(milliseconds: 150),
+                                    child: IconButton(
+                                      icon: Icon(
+                                        _passwordVisibility[password['id']] ==
+                                                true
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        color: Colors.white70,
+                                        size: 24,
                                       ),
-                                    );
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.edit,
-                                    color: Colors.white70,
-                                    size: 24,
+                                      onPressed: () {
+                                        setState(() {
+                                          _passwordVisibility[password['id']] =
+                                              !(_passwordVisibility[
+                                                      password['id']] ??
+                                                  false);
+                                        });
+                                      },
+                                    ),
                                   ),
-                                  onPressed: () => _editLabel(password),
-                                ),
-                              ],
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.copy,
+                                      color: Colors.white70,
+                                      size: 24,
+                                    ),
+                                    onPressed: () {
+                                      Clipboard.setData(
+                                        ClipboardData(
+                                            text: password['password']),
+                                      );
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Password copied!'),
+                                          backgroundColor: Color(0xFF191647),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color: Colors.white70,
+                                      size: 24,
+                                    ),
+                                    onPressed: () => _editLabel(password),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
