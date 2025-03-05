@@ -45,10 +45,17 @@ class _ChatScreenState extends State<ChatScreen> {
         '\n3. Provide practical advice for creating and managing secure passwords'
         '\n4. Explain password-related concepts in simple terms'
         '\n5. Guide users in protecting their digital accounts'
+        '\n6. Explain app navigation:'
+        '    - Main drawer (left side) has 3 sections:'
+        '      • Generate: Create new passwords'
+        '      • Passwords: View saved passwords'
+        '      • Chat: Talk with me'
+        '    - Toggle drawer with menu button (top-left)'
+        '    - Always save generated passwords before switching sections'
         '\nKeep responses concise, practical, and easy to understand. Always maintain a helpful and professional tone.',
       ),
       Content.text(
-        'I understand my role as SecuPrime. I will provide expert guidance on password security, focusing on practical advice and clear explanations to help users protect their digital accounts.',
+        'I understand my role as SecuPrime. I will provide expert guidance on password security and app navigation, focusing on practical advice and clear explanations to help users protect their digital accounts and use the app effectively.',
       ),
     ]);
   }
@@ -62,7 +69,8 @@ class _ChatScreenState extends State<ChatScreen> {
               "• Creating strong passwords\n"
               "• Understanding password security best practices\n"
               "• Protecting your online accounts\n"
-              "• Managing passwords securely\n\n"
+              "• Managing passwords securely\n"
+              "• Help you how to navigate the SecuPrime app\n\n"
               "What would you like to learn about?",
           isUser: false,
         ),
@@ -274,25 +282,29 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: const Color(0xFF191647),
       appBar: AppBar(
         backgroundColor: const Color(0xFF191647),
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'SecuPrime',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
+        title: Container(
+          padding: const EdgeInsets.all(45.0),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'SecuPrime',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 25,
+                ),
               ),
-            ),
-            Text(
-              'Password Security Assistant',
-              style: TextStyle(
-                color: Color(0xFF8E8EF3),
-                fontSize: 14,
+              SizedBox(height: 4),
+              Text(
+                'Password Security Assistant',
+                style: TextStyle(
+                  color: Color(0xFF8E8EF3),
+                  fontSize: 14,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           IconButton(
@@ -501,8 +513,12 @@ class ChatMessage extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 12,
+                    bottom: 32,
+                  ),
                   decoration: BoxDecoration(
                     color: isUser
                         ? const Color(0xFF8E8EF3)
@@ -518,13 +534,18 @@ class ChatMessage extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-                      SelectableText(
-                        text,
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 16),
+                      Container(
+                        padding: const EdgeInsets.only(
+                          bottom: 15,
+                        ),
+                        child: SelectableText(
+                          text,
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 16),
+                        ),
                       ),
                       Positioned(
-                        bottom: 4,
+                        bottom: 0.1,
                         right: 4,
                         child: IconButton(
                           icon: const Icon(Icons.content_copy,

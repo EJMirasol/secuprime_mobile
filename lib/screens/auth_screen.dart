@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:secuprime_mobile/helpers/database_helper.dart';
 import 'package:flutter/services.dart';
+import 'package:secuprime_mobile/services/password_storage_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignInPage extends StatelessWidget {
   @override
@@ -190,7 +192,18 @@ class _SignInScreenState extends State<SignInScreen> {
     if (_key.currentState!.validate()) {
       String pin = _pinController.text;
       DatabaseHelper dbHelper = DatabaseHelper();
+
+      // Clear existing data before saving new PIN
+      final passwordService = PasswordStorageService();
+      await passwordService.deleteEntireDatabase();
+
+      // Clear chat history
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('chat_history');
+      await prefs.setBool('isFirstLogin', true); // Mark as new user
+
       await dbHelper.savePin(pin);
+
       setState(() {
         isRegistering = false;
       });
@@ -222,7 +235,18 @@ class _SignInScreenState extends State<SignInScreen> {
       DatabaseHelper dbHelper = DatabaseHelper();
       bool isVerified = await dbHelper.verifyPin(pin);
       if (isVerified) {
-        Navigator.pushReplacementNamed(context, '/home');
+        final prefs = await SharedPreferences.getInstance();
+        // Check if this is the first login after registration
+        bool isFirstLogin = prefs.getBool('isFirstLogin') ?? true;
+
+        // Set tutorial status based on first login
+        await prefs.setBool('hasCompletedTutorial', !isFirstLogin);
+
+        // Mark first login as completed
+        await prefs.setBool('isFirstLogin', false);
+
+        Navigator.pushReplacementNamed(context, '/home',
+            arguments: isFirstLogin);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

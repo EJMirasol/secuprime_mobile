@@ -11,9 +11,9 @@ class PasswordGenerationResult {
 
 class PasswordGenerator {
   static const highComplexityChars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#\$%^&*()';
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz2357!@#\$%^&*()';
   static const mediumComplexityChars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz2357';
   static const lowComplexityChars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
@@ -31,17 +31,9 @@ class PasswordGenerator {
 
   PasswordGenerationResult generateSecurePassword(
       int length, String complexity) {
-    final primeNumbers = <int>[];
-    int number = 7; // Start from 1 million
-
-    // Generate a list of prime numbers
-    while (primeNumbers.length < length) {
-      if (isPrime(number)) {
-        primeNumbers.add(number);
-      }
-      number +=
-          Random().nextInt(1000) + 1; // Add random increment to speed up search
-    }
+    final allowedPrimes = [2, 3, 5, 7];
+    final primeNumbers = List.generate(length,
+        (index) => allowedPrimes[Random().nextInt(allowedPrimes.length)]);
 
     // Shuffle the prime numbers for added randomness
     primeNumbers.shuffle();
@@ -62,12 +54,45 @@ class PasswordGenerator {
           hashedBytes[random.nextInt(hashedBytes.length)] % chars.length];
     }).join();
 
+    // Enforce exactly one prime number in the password
+    final passwordChars = password.split('');
+    final primeChars = ['2', '3', '5', '7'];
+    var primeIndices = <int>[];
+
+    // Find existing primes
+    for (int i = 0; i < passwordChars.length; i++) {
+      if (primeChars.contains(passwordChars[i])) {
+        primeIndices.add(i);
+      }
+    }
+
+    // Add or replace primes as needed
+    if (primeIndices.isEmpty) {
+      // Add a prime at random position
+      final newPos = random.nextInt(length);
+      passwordChars[newPos] = primeChars[random.nextInt(primeChars.length)];
+    } else if (primeIndices.length > 1) {
+      // Keep one random prime, replace others
+      final keepIndex = primeIndices[random.nextInt(primeIndices.length)];
+      for (final index in primeIndices) {
+        if (index != keepIndex) {
+          String replacement;
+          do {
+            replacement = chars[random.nextInt(chars.length)];
+          } while (primeChars.contains(replacement));
+          passwordChars[index] = replacement;
+        }
+      }
+    }
+
+    final finalPassword = passwordChars.join();
+
     final metrics = {
       'Entropy':
           '${(log(chars.length) / log(2) * length).toStringAsFixed(2)} bits',
       'Strength': complexity,
     };
 
-    return PasswordGenerationResult(password, metrics);
+    return PasswordGenerationResult(finalPassword, metrics);
   }
 }
