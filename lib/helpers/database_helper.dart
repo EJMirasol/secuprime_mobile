@@ -39,7 +39,12 @@ class DatabaseHelper {
 
   Future<void> savePin(String pin) async {
     final db = await database;
+    await db.delete('user_auth'); // Clear existing PINs
     await db.insert('user_auth', {'pin': pin});
+
+    // Clear password database
+    final passwordDbPath = join(await getDatabasesPath(), 'passwords.db');
+    await deleteDatabase(passwordDbPath);
   }
 
   Future<bool> verifyPin(String pin) async {

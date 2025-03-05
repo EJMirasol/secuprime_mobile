@@ -133,4 +133,10 @@ class PasswordStorageService {
       whereArgs: [id],
     );
   }
+
+  Future<void> deleteEntireDatabase() async {
+    final path = join(await getDatabasesPath(), 'passwords.db');
+    await deleteDatabase(path);
+    _database = null; // Reset database instance
+  }
 }

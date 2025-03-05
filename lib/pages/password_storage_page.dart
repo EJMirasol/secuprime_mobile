@@ -130,11 +130,14 @@ class _PasswordStoragePageState extends State<PasswordStoragePage> {
     return Scaffold(
       backgroundColor: Color(0xFF191647),
       appBar: AppBar(
-        title: const Text('Saved Passwords',
-            style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold)),
+        title: Container(
+          padding: const EdgeInsets.only(top: 10.0, bottom: 5.0, left: 40),
+          child: const Text('Saved Passwords',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold)),
+        ),
         backgroundColor: Color(0xFF191647),
         elevation: 0,
         actions: [

@@ -22,7 +22,7 @@ class PasswordMetricsDisplay extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      color: Color(0xFF191647),
                     ),
                   ),
                   TextSpan(
@@ -30,7 +30,7 @@ class PasswordMetricsDisplay extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      color: Colors.grey,
                     ),
                   ),
                 ],
