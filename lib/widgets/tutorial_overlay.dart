@@ -1,105 +1,143 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 
 class TutorialOverlay extends StatefulWidget {
-  final List<TutorialStep> steps;
   final VoidCallback onComplete;
-  final int initialStep;
-  final Function(int)? onStepChanged;
 
   const TutorialOverlay({
     super.key,
-    required this.steps,
     required this.onComplete,
-    this.initialStep = 0,
-    this.onStepChanged,
   });
 
   @override
   _TutorialOverlayState createState() => _TutorialOverlayState();
 }
 
-class _TutorialOverlayState extends State<TutorialOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  int _currentStep;
-
-  _TutorialOverlayState() : _currentStep = 0;
+class _TutorialOverlayState extends State<TutorialOverlay> {
+  late VideoPlayerController _controller;
+  bool _isPlaying = true;
 
   @override
   void initState() {
     super.initState();
-    _currentStep = widget.initialStep;
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    )..repeat(reverse: true);
+    _initializeVideo();
   }
 
-  void _nextStep() {
-    if (_currentStep < widget.steps.length - 1) {
-      setState(() {
-        _currentStep++;
-        widget.onStepChanged?.call(_currentStep);
+  void _initializeVideo() async {
+    _controller = VideoPlayerController.asset('assets/tutorial/tutorial.mp4')
+      ..initialize().then((_) {
+        setState(() {});
+        _controller.play();
+        _controller.setLooping(true);
       });
-    } else {
-      widget.onComplete();
-    }
+  }
+
+  void _togglePlayPause() {
+    setState(() {
+      if (_controller.value.isPlaying) {
+        _controller.pause();
+        _isPlaying = false;
+      } else {
+        _controller.play();
+        _isPlaying = true;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final step = widget.steps[_currentStep];
-
     return Stack(
       children: [
-        if (step.isFullScreen)
-          Positioned.fill(
-            child: Container(
-              color: const Color.fromARGB(255, 24, 24, 24).withOpacity(0.6),
+        Positioned.fill(
+          child: Container(
+            color: Colors.black.withOpacity(0.9),
+            child: Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width *
+                    0.9, // 90% of screen width
+                height: MediaQuery.of(context).size.height *
+                    0.6, // 60% of screen height
+                child: AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: GestureDetector(
+                    onTap: _togglePlayPause,
+                    child: VideoPlayer(_controller),
+                  ),
+                ),
+              ),
             ),
           ),
+        ),
         Positioned(
-          left: step.targetRect.left,
-          top: step.targetRect.top,
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, _controller.value * 10),
-                child: child,
-              );
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          bottom: 100,
+          left: 0,
+          right: 0,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
               children: [
-                Icon(
-                  Icons.arrow_downward,
-                  color: Colors.white,
-                  size: 32,
+                IconButton(
+                  icon: Icon(Icons.replay_10, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      _controller.seekTo(
+                          _controller.value.position - Duration(seconds: 10));
+                    });
+                  },
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF191647),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    step.description,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
+                Expanded(
+                  child: VideoProgressIndicator(
+                    _controller,
+                    allowScrubbing: true,
+                    colors: VideoProgressColors(
+                      playedColor: Colors.blue,
+                      bufferedColor: Colors.grey,
+                      backgroundColor: Colors.white24,
                     ),
                   ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.forward_10, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      _controller.seekTo(
+                          _controller.value.position + Duration(seconds: 10));
+                    });
+                  },
                 ),
               ],
             ),
           ),
         ),
-        Positioned.fill(
-          child: GestureDetector(
-            onTap: _nextStep,
-            behavior: HitTestBehavior.translucent,
+        Positioned(
+          bottom: 40,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0073e6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+              ),
+              onPressed: widget.onComplete,
+              child: const Text(
+                'Finish',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 20,
+          right: 20,
+          child: IconButton(
+            icon: Icon(
+              _isPlaying ? Icons.pause : Icons.play_arrow,
+              color: Colors.white,
+              size: 30,
+            ),
+            onPressed: _togglePlayPause,
           ),
         ),
       ],
@@ -111,16 +149,4 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     _controller.dispose();
     super.dispose();
   }
-}
-
-class TutorialStep {
-  final Rect targetRect;
-  final String description;
-  final bool isFullScreen;
-
-  TutorialStep({
-    required this.targetRect,
-    required this.description,
-    this.isFullScreen = false,
-  });
 }

@@ -42,6 +42,7 @@ dependencies:
   path: ^1.8.3
   dart_openai: ^4.0.0
   google_generative_ai: ^0.2.0
+  video_player: ^2.7.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -67,6 +68,7 @@ flutter:
   assets:
     - assets/background_image.jpg # Update with your actual image path
     - assets/logo.png
+    - assets/tutorial/tutorial.mp4
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

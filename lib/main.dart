@@ -107,7 +107,6 @@ class MainNavigationState extends State<MainNavigation> {
   final _passwordGeneratorKey = GlobalKey<PasswordGeneratorScreenState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _showTutorial = false;
-  int _currentTutorialStep = 0;
 
   // Add these GlobalKeys for the tutorial
   final GlobalKey generateButtonKey = GlobalKey();
@@ -191,8 +190,53 @@ class MainNavigationState extends State<MainNavigation> {
   void showTutorial(int stepIndex) {
     setState(() {
       _showTutorial = true;
-      _currentTutorialStep = stepIndex;
     });
+  }
+
+  void _showTermsAndConditions(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF191647),
+        title: const Text('Terms & Conditions',
+            style: TextStyle(color: Colors.white, fontSize: 22)),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '1. Acceptance of Terms\n'
+                'By using SecuPrime, you agree to these terms and conditions.\n\n'
+                '2. Password Security\n'
+                'You are responsible for maintaining the security of your passwords.\n\n'
+                '3. Data Protection\n'
+                'We take measures to protect your data, but cannot guarantee absolute security.\n\n'
+                '4. Prohibited Use\n'
+                'You may not use this app for illegal or unauthorized purposes.\n\n'
+                '5. Limitation of Liability\n'
+                'We are not liable for any damages resulting from the use of this app.\n\n'
+                '6. Changes to Terms\n'
+                'We may modify these terms at any time. Continued use constitutes acceptance.\n\n'
+                '7. Governing Law\n'
+                'These terms are governed by the laws of your jurisdiction.',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0073e6),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -236,17 +280,20 @@ class MainNavigationState extends State<MainNavigation> {
               leading: Icon(Icons.help_outline, color: Colors.white),
               title: Text('Tutorial', style: TextStyle(color: Colors.white)),
               onTap: () {
-                // Close the drawer
                 _scaffoldKey.currentState?.closeDrawer();
-
-                // Navigate to the first tutorial step's page
                 _onItemTapped(0);
-
-                // Show the tutorial overlay starting from the first step
                 setState(() {
                   _showTutorial = true;
-                  _currentTutorialStep = 0;
                 });
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.description, color: Colors.white),
+              title: Text('Terms & Conditions',
+                  style: TextStyle(color: Colors.white)),
+              onTap: () {
+                _scaffoldKey.currentState?.closeDrawer();
+                _showTermsAndConditions(context);
               },
             ),
           ],
@@ -257,44 +304,10 @@ class MainNavigationState extends State<MainNavigation> {
           _pages[_selectedIndex],
           if (_showTutorial)
             TutorialOverlay(
-              steps: [
-                TutorialStep(
-                  targetRect: _getDrawerButtonRect(context),
-                  description: 'Tap here to open the navigation menu',
-                ),
-                TutorialStep(
-                  targetRect: _getGeneratePasswordButtonRect(context),
-                  description: 'Generate secure passwords here',
-                ),
-                TutorialStep(
-                  targetRect: _getSavePasswordButtonRect(context),
-                  description: 'Save your generated passwords',
-                ),
-                TutorialStep(
-                  targetRect: _getSearchFieldRect(context),
-                  description: 'Search through your saved passwords here',
-                  isFullScreen: true,
-                ),
-                TutorialStep(
-                  targetRect: _getChatInputRect(context),
-                  description: 'Ask our AI assistant about password security',
-                  isFullScreen: true,
-                ),
-              ],
-              initialStep: _currentTutorialStep,
               onComplete: () async {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setBool('hasCompletedTutorial', true);
                 setState(() => _showTutorial = false);
-              },
-              onStepChanged: (stepIndex) {
-                if (stepIndex == 3) {
-                  _onItemTapped(1);
-                } else if (stepIndex == 4) {
-                  _onItemTapped(2);
-                } else {
-                  _onItemTapped(0);
-                }
               },
             ),
           Positioned(
@@ -309,74 +322,5 @@ class MainNavigationState extends State<MainNavigation> {
         ],
       ),
     );
-  }
-
-  Rect _getDrawerButtonRect(BuildContext context) {
-    final renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox != null) {
-      final offset = renderBox.localToGlobal(Offset.zero);
-      return Rect.fromLTWH(offset.dx, offset.dy, 56, 56);
-    }
-    return Rect.fromLTWH(0, 0, 56, 56); // Default rect if not found
-  }
-
-  Rect _getGeneratePasswordButtonRect(BuildContext context) {
-    final renderBox =
-        generateButtonKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox != null) {
-      final offset = renderBox.localToGlobal(Offset.zero);
-      return Rect.fromLTWH(
-        offset.dx,
-        offset.dy,
-        renderBox.size.width,
-        renderBox.size.height,
-      );
-    }
-    return Rect.fromLTWH(0, 0, 100, 50);
-  }
-
-  Rect _getSavePasswordButtonRect(BuildContext context) {
-    final renderBox =
-        saveButtonKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox != null) {
-      final offset = renderBox.localToGlobal(Offset.zero);
-      return Rect.fromLTWH(
-        offset.dx,
-        offset.dy,
-        renderBox.size.width,
-        renderBox.size.height,
-      );
-    }
-    return Rect.fromLTWH(0, 0, 100, 50);
-  }
-
-  // Helper method to get the search field position
-  Rect _getSearchFieldRect(BuildContext context) {
-    final renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox != null) {
-      final offset = renderBox.localToGlobal(Offset.zero);
-      return Rect.fromLTWH(
-        offset.dx + 16, // Adjust for padding
-        offset.dy + kToolbarHeight + 8, // Below app bar
-        MediaQuery.of(context).size.width - 32, // Full width minus padding
-        56, // Approximate height of search field
-      );
-    }
-    return Rect.fromLTWH(0, 0, 100, 50); // Default rect if not found
-  }
-
-  // Helper method to get the chat input position
-  Rect _getChatInputRect(BuildContext context) {
-    final renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox != null) {
-      final offset = renderBox.localToGlobal(Offset.zero);
-      return Rect.fromLTWH(
-        offset.dx + 16, // Left padding
-        offset.dy + MediaQuery.of(context).size.height - 80, // Bottom of screen
-        MediaQuery.of(context).size.width - 32, // Full width minus padding
-        56, // Approximate height of chat input
-      );
-    }
-    return Rect.fromLTWH(0, 0, 100, 50); // Default rect if not found
   }
 }
